@@ -61,6 +61,12 @@
     .hover-link {
       color: #0022ff; /* hover “fijo” en móvil para indicar botón */
     }
+
+    .letra {
+     display: inline-block;
+     transition: transform 0.1s ease;
+     font-size: inherit; /* <--- hereda tamaño del bloque padre */
+     }
   }
 </style>
 </head>
@@ -231,7 +237,7 @@ function prepararBloques() {
 // Preparar bloques al cargar
 prepararBloques();
 
-// Función de repulsión de letras
+// Función de repulsión de letras desde un punto X,Y
 function repelerLetras(clientX, clientY) {
   const letras = document.querySelectorAll(".bloque-texto:not(.no-repel) .letra");
 
@@ -253,18 +259,25 @@ function repelerLetras(clientX, clientY) {
   });
 }
 
-// Mouse move
-document.addEventListener("mousemove", (e) => {
-  repelerLetras(e.clientX, e.clientY);
-});
+// Función de repulsión desde el centro de la pantalla (para móvil)
+function repelerLetrasDesdeCentro() {
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2;
+  repelerLetras(centerX, centerY);
+}
 
-// Touch move (para móvil)
-document.addEventListener("touchmove", (e) => {
-  if (e.touches.length > 0) {
-    const touch = e.touches[0];
-    repelerLetras(touch.clientX, touch.clientY);
-  }
-});
+// Detectar si es móvil
+const esMovil = window.innerWidth <= 768;
+
+if (!esMovil) {
+  // Desktop: repulsión con mouse
+  document.addEventListener("mousemove", (e) => {
+    repelerLetras(e.clientX, e.clientY);
+  });
+} else {
+  // Móvil: repulsión usando scroll desde el centro
+  window.addEventListener("scroll", repelerLetrasDesdeCentro);
+}
 </script>
 
 
