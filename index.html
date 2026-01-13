@@ -7,26 +7,26 @@
   body {
     margin-top: 80px;
     margin-bottom: 80px;
-    padding: 0px; /* margen global editable */
+    padding: 0px;
     font-family: "Times New Roman", serif;
     font-size: 24px;
     display: flex;
     flex-direction: column;
-    align-items: center; /* centra horizontalmente */
+    align-items: center;
     background: #fff;
   }
 
   .bloque-texto {
-    text-align: center;       /* centro visual del párrafo */
-    max-width: 1300px;         /* ancho editable */
-    margin-bottom: 80px;      /* espacio vertical editable */
+    text-align: center;
+    max-width: 1300px;
+    margin-bottom: 80px;
     white-space: normal;
     word-break: keep-all;
   }
 
   .palabra {
     display: inline-block;
-    white-space: nowrap;      /* evita que se rompan palabras */
+    white-space: nowrap;
   }
 
   .letra {
@@ -35,14 +35,32 @@
   }
 
   .hover-link {
-  text-decoration: none; /* quita subrayado */
-  color: #000; /* color por defecto */
-  font-weight: regular; 
-  transition: color 0.1s ease;
+    text-decoration: none;
+    color: #000;
+    font-weight: regular;
+    transition: color 0.1s ease;
   }
 
- .hover-link:hover {
-  color: #0022ff; /* color al pasar el mouse */
+  /* Hover fijo en móvil: mostramos color directamente */
+  .hover-link:hover,
+  .hover-link:active {
+    color: #0022ff;
+  }
+
+  /* MEDIA QUERY para móvil */
+  @media (max-width: 768px) {
+    body {
+      font-size: 18px; /* fuente más pequeña en móvil */
+    }
+
+    .bloque-texto {
+      margin-bottom: 40px; /* menos espacio vertical entre bloques */
+      max-width: 90%; /* ancho del bloque ajustable */
+    }
+
+    .hover-link {
+      color: #0022ff; /* hover “fijo” en móvil para indicar botón */
+    }
   }
 </style>
 </head>
@@ -178,16 +196,13 @@ function prepararBloques() {
   const bloques = document.querySelectorAll(".bloque-texto");
 
   bloques.forEach(bloque => {
-    // Si el bloque tiene la clase no-repel, lo dejamos sin tocar
+    // Bloques sin repulsión
     if (bloque.classList.contains("no-repel")) return;
 
     const texto = bloque.innerText;
-    bloque.innerHTML = ""; // vaciar contenido
+    bloque.innerHTML = "";
 
-    // Separar texto por palabras
     texto.split(" ").forEach((word, index) => {
-
-      // Si la palabra es el marcador |, insertamos un salto de línea
       if (word === "|") {
         bloque.appendChild(document.createElement("br"));
         return;
@@ -196,7 +211,6 @@ function prepararBloques() {
       const palabraSpan = document.createElement("span");
       palabraSpan.classList.add("palabra");
 
-      // Crear spans por cada letra
       word.split("").forEach(char => {
         const letraSpan = document.createElement("span");
         letraSpan.classList.add("letra");
@@ -204,7 +218,6 @@ function prepararBloques() {
         palabraSpan.appendChild(letraSpan);
       });
 
-      // Añadir espacio entre palabras si la siguiente no es salto
       const palabras = texto.split(" ");
       if (index < palabras.length - 1 && palabras[index + 1] !== "|") {
         palabraSpan.appendChild(document.createTextNode("\u00A0"));
@@ -218,15 +231,14 @@ function prepararBloques() {
 // Preparar bloques al cargar
 prepararBloques();
 
-// Animación de repulsión
-document.addEventListener("mousemove", (e) => {
-  // Solo seleccionar letras que NO estén dentro de bloques con clase "no-repel"
+// Función de repulsión de letras
+function repelerLetras(clientX, clientY) {
   const letras = document.querySelectorAll(".bloque-texto:not(.no-repel) .letra");
 
   letras.forEach(letra => {
     const rect = letra.getBoundingClientRect();
-    const dx = e.clientX - (rect.left + rect.width / 2);
-    const dy = e.clientY - (rect.top + rect.height / 2);
+    const dx = clientX - (rect.left + rect.width / 2);
+    const dy = clientY - (rect.top + rect.height / 2);
     const distancia = Math.sqrt(dx*dx + dy*dy);
 
     const fuerza = Math.max(0, 50 - distancia);
@@ -239,8 +251,22 @@ document.addEventListener("mousemove", (e) => {
       letra.style.transform = "translate(0, 0)";
     }
   });
+}
+
+// Mouse move
+document.addEventListener("mousemove", (e) => {
+  repelerLetras(e.clientX, e.clientY);
+});
+
+// Touch move (para móvil)
+document.addEventListener("touchmove", (e) => {
+  if (e.touches.length > 0) {
+    const touch = e.touches[0];
+    repelerLetras(touch.clientX, touch.clientY);
+  }
 });
 </script>
+
 
 
 
